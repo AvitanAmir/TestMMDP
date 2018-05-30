@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import models
-
+import operations
 def main():
     component_probabilities_df = pd.read_csv('data/ComponentProbabilities.csv')
     test_components_df = pd.read_csv('data/TestComponents.csv')
@@ -47,7 +47,8 @@ def main():
     for test in test_dict:
         if test in test_outcomes_dict.keys():
             test_run_dict[test] = models.TestRun(test_dict[test],test_outcomes_dict[test])
-            print(test_run_dict[test].get_test().get_test_name(),test_run_dict[test].get_test_outcome())
+            print(test_run_dict[test].get_test().get_test_name(),test_run_dict[test].get_test_outcome(),operations.calculate_reward(test_run_dict[test].get_test_outcome()))
+
 
 if __name__ == "__main__":
     main()
