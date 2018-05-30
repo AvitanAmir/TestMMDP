@@ -1,5 +1,4 @@
 
-
 class Component(object):
 
     def __init__(self, name, failure_prob):
@@ -14,7 +13,8 @@ class Component(object):
 
 class Test(object):
 
-    def __init__(self, components):
+    def __init__(self, test_name,components):
+        self._test_name = test_name
         self._components = components
 
     def get_failure_probability(self):
@@ -27,3 +27,22 @@ class Test(object):
             prob *= component.get_success_probability()
 
         return prob
+    def get_test_name(self):
+        return self._test_name
+
+class TestRun(object):
+    def __init__(self,test,test_outcome):
+        self._test = test
+        self._test_outcome = test_outcome
+
+    def get_test(self):
+        return self._test
+
+    def get_test_outcome(self):
+        return self._test_outcome
+
+
+class State(object):
+    def __init__(self,tests_run, test_left):
+        self._tests_run = tests_run
+        self._test_left = test_left

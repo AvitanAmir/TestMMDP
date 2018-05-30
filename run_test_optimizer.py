@@ -15,6 +15,7 @@ def main():
     test_dict = {}
     test_outcomes_dict = {}
     run_tests = {}
+    test_run_dict ={}
 
     for index, row in component_probabilities_df.iterrows():
         # print(row['ComponentName'], row['FaultProbability'])
@@ -33,7 +34,7 @@ def main():
             test_comp_dict[row['TestName']].append(comp_dict[row['ComponentName']])
 
     for test in test_comp_dict:
-        test_dict[test] = models.Test(test_comp_dict[test])
+        test_dict[test] = models.Test(test,test_comp_dict[test])
         #print(test,test_dict[test].get_failure_probability())
 
     for index, row in test_outcomes_df.iterrows():
@@ -43,7 +44,10 @@ def main():
         else:
             test_outcomes_dict[row['TestName']] = row['TestOutcome']
 
-
+    for test in test_dict:
+        if test in test_outcomes_dict.keys():
+            test_run_dict[test] = models.TestRun(test_dict[test],test_outcomes_dict[test])
+            print(test_run_dict[test].get_test().get_test_name(),test_run_dict[test].get_test_outcome())
 
 if __name__ == "__main__":
     main()
