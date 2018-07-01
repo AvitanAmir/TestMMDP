@@ -32,17 +32,16 @@ Actual bugs in Tests:
 
 
 State:
-Running Test i
 Test Left – collection of tests left
 Test Run – collection of tests already ran
 
 Action:
-Do Test # after running Test i
+Test Left – collection of tests left
 Transition Function(Pr(s′|s,a)):
 TR (Testi,A,Testi’) = (Pri(Testi),1 - Pri(Testi))
 
 Reward:
-Test Fail = +1
-Test Pass = 0.1
+Test Fail = +10 -1
+Test Pass = -1
 
 In each iteration we choose the max expected utility for each state according to transition function indicates the probability for being failed X expect max of choosing the next Test.
