@@ -29,8 +29,8 @@ class Test(object):
     def get_test_name(self):
         return self._test_name
 
-#    def get_expected_reward(self):
-#        return self.get_success_probability()* + operations.calculate_reward(1) +self.get_failure_probability()* + operations.calculate_reward(0)
+    def get_expected_reward(self):
+        return self.get_success_probability()* + operations.calculate_reward(1) +self.get_failure_probability()* + operations.calculate_reward(0)
 
 
 '''class TestRun(object):
@@ -60,3 +60,12 @@ class State(object):
         for st_outcome in self._state_outcomes:
             state_reward += operations.calculate_reward(st_outcome)
         return state_reward
+
+    def get_tests_run(self):
+        return self._tests_run
+
+    def get_tests_left(self):
+        return self._tests_left
+
+    def get_state_name(self):
+        return self._state_name

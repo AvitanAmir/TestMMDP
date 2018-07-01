@@ -6,8 +6,8 @@ def main():
     component_probabilities_df = pd.read_csv('data/ComponentProbabilities.csv')
     #test_components_df = pd.read_csv('data/TestComponents.csv')
     test_components_df = pd.read_csv('data/TestComponents_small.csv')
-    test_outcomes_df = pd.read_csv('data/TestOutcomes.csv')
-
+    #test_outcomes_df = pd.read_csv('data/TestOutcomes.csv')
+    test_outcomes_df = pd.read_csv('data/TestOutcomes_small.csv')
     agent_count = 1
     comp_dict = {}
     comp_run_dict = {}
@@ -67,18 +67,50 @@ def main():
     #print(states_comb)
     state_counter = 0
     for s in states_comb:
-            state_outcomes = []
-            state_name = 'S'+str(state_counter)
-            tests_run = s
-            test_left = list(set(state_index).difference(set(s)))
-            for st in tests_run:
-                state_outcomes.append(test_outcomes_dict[st])
-            state = models.State(state_name,tests_run,test_left,state_outcomes)
-            states.append(state)
-            state_counter+=1
-            #print(state.get_state_info(),state.get_state_reward())
+            if len(s)%2==0:
+                state_outcomes = []
+                state_name = 'S'+str(state_counter)
+                tests_run = s
+                test_left = list(set(state_index).difference(set(s)))
+                for st in tests_run:
+                    state_outcomes.append(test_outcomes_dict[st])
+                state = models.State(state_name,tests_run,test_left,state_outcomes)
+                states.append(state)
+                state_counter+=1
+                #print(state.get_state_info(),state.get_state_reward())
 
-    #print(states)
+
+    transitions = []
+    actions = {}
+    action_Pfailure = {}
+    expected_reward={}
+    action_counter = 0
+    for s in states:
+        source_state_run = s.get_tests_run()
+        for t in states:
+            target_state_run = t.get_tests_run()
+            if s.get_state_name()!= t.get_state_name():
+                action =  list(set(target_state_run).difference(set(source_state_run)))
+                if len(action)==2:
+                    action_tup = (action[0],action[1])
+                    action_tup_reversed = (action[1],action[0])
+                    if action_tup in actions:
+                        action_name = actions[action_tup]
+                    elif action_tup_reversed in actions:
+                        action_name = actions[action_tup_reversed]
+                    else:
+                        action_name = 'A'+str(action_counter)
+                        actions[action_tup] = action_name
+                        action_Pfailure[action_name] = 1 - (float(test_dict[action_tup[0]].get_success_probability()) * float(test_dict[action_tup[1]].get_success_probability()))
+                        action_counter += 1
+                    tr = (s.get_state_name(),action_name,t.get_state_name())
+                    expected_reward[tr] = action_Pfailure[action_name]*operations.calculate_reward(0) + (1- action_Pfailure[action_name])*operations.calculate_reward(1)
+                    transitions.append(tr)
+
+    print(actions)
+    print(action_Pfailure)
+    print(transitions)
+    print(expected_reward)
 
 
 
