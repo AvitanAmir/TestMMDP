@@ -46,8 +46,9 @@ class Test(object):
 '''
 
 class State(object):
-    def __init__(self,state_name,tests_run, test_left,state_outcomes):
+    def __init__(self,state_name,state_index,tests_run, test_left,state_outcomes):
         self._state_name = state_name
+        self._state_index = state_index
         self._tests_run = tests_run
         self._test_left = test_left
         self._state_outcomes = state_outcomes
@@ -69,3 +70,6 @@ class State(object):
 
     def get_state_name(self):
         return self._state_name
+
+    def get_state_index(self):
+        return self._state_index

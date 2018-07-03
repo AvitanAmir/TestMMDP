@@ -2,21 +2,22 @@ import pandas as pd
 import numpy as np
 import models
 import operations
+import MMDP
 def main():
     component_probabilities_df = pd.read_csv('data/ComponentProbabilities.csv')
     #test_components_df = pd.read_csv('data/TestComponents.csv')
     test_components_df = pd.read_csv('data/TestComponents_small.csv')
     #test_outcomes_df = pd.read_csv('data/TestOutcomes.csv')
     test_outcomes_df = pd.read_csv('data/TestOutcomes_small.csv')
-    agent_count = 1
+    agent_count = 2
     comp_dict = {}
     comp_run_dict = {}
     test_comp_dict = {}
-    test_comp = []
+    #test_comp = []
     test_dict = {}
     test_outcomes_dict = {}
-    run_tests = {}
-    test_run_dict ={}
+    #run_tests = {}
+    #test_run_dict ={}
     action_dict ={}
 
     for index, row in component_probabilities_df.iterrows():
@@ -70,15 +71,15 @@ def main():
             if len(s)%2==0:
                 state_outcomes = []
                 state_name = 'S'+str(state_counter)
+                state_idx = state_counter
                 tests_run = s
                 test_left = list(set(state_index).difference(set(s)))
                 for st in tests_run:
                     state_outcomes.append(test_outcomes_dict[st])
-                state = models.State(state_name,tests_run,test_left,state_outcomes)
+                state = models.State(state_name,state_idx,tests_run,test_left,state_outcomes)
                 states.append(state)
                 state_counter+=1
                 #print(state.get_state_info(),state.get_state_reward())
-
 
     transitions = []
     actions = {}
@@ -107,46 +108,97 @@ def main():
                     expected_reward[tr] = action_Pfailure[action_name]*operations.calculate_reward(0) + (1- action_Pfailure[action_name])*operations.calculate_reward(1)
                     transitions.append(tr)
 
+    #print(actions)
+    #print(action_Pfailure)
+    #print(transitions)
+    #print(expected_reward)
+    #print(states)
+
+    discount_factor = 1.0
+
+    V = np.zeros(len(states))
+    def one_step_lookahead(state, V):
+            A = np.zeros(len(actions))
+            for tr in transitions:
+                if tr[0] ==state.get_state_name():
+                    A[int(tr[1].replace('A',''))] +=action_Pfailure[tr[1]]*(expected_reward[tr] + discount_factor * V[int(tr[2].replace('S',''))])
+            return A
+
+    for s in states:
+        # Do a one-step lookahead to find the best action
+        #print(s.get_state_name())
+        A = one_step_lookahead(s, V)
+        best_action_value = np.max(A)
+        # Calculate delta across all states seen so far
+        delta = max(delta, np.abs(best_action_value - V[s.get_state_index()]))
+        # Update the value function.
+        V[s.get_state_index()] = best_action_value
+
+    policy = np.zeros([len(states), len(actions)])
+    for s in states:
+        # One step lookahead to find the best action for this state
+        A = one_step_lookahead(s, V)
+        best_action = np.argmax(A)
+        # Always take the best action
+        policy[s.get_state_index(), best_action] = 1.0
+
+    state_i = 0
+    policy_route =[]
+    for i in range(len(actions)):
+        for j in range(len(policy[state_i])):
+            if policy[state_i][j]==1:
+                act = j
+        for e in expected_reward:
+            if e[0] =='S'+ str(state_i) and e[1]=='A'+str(act):
+                if e[1] not in policy_route:
+                    policy_route.append(e[1])
+                    #print(e)
+                    state_i = int(e[2].replace('S',''))
+                    break
+
+    print(policy_route)
+
+
+
+
+
+
+
+
+
+
+
+
+'''   action_arr = []
+    state_arr = []
+    for a in actions:
+        action_arr.append(int(actions[a].replace('A','')))
+
+    trans_arr = [[0.0 for x in range(len(actions))] for y in range(len(states))]
+    reward_arr = [[0.0 for x in range(len(actions))] for y in range(len(states))]
+    for tr in transitions:
+        state_index = int(str(tr[0]).replace('S',''))
+        action_index = int(str(tr[1]).replace('A',''))
+        transP = action_Pfailure[tr[1]]
+        trans_arr[state_index][action_index] = transP
+        reward_arr[state_index][action_index] =expected_reward[tr]
+
+    for s in states:
+        state_arr.append(int(str(s.get_state_name()).replace('S','')))
+
+    print(trans_arr)
     print(actions)
     print(action_Pfailure)
     print(transitions)
     print(expected_reward)
+    print(action_arr)
+    print(reward_arr)
+    print(states)
 
-
-
-
-
-''' 
-
-
-       for test in test_dict:
-        if test in test_outcomes_dict.keys():
-            test_run_dict[test] = models.TestRun(test_dict[test],test_outcomes_dict[test])
-            #print(test_run_dict[test].get_test().get_test_name(),test_run_dict[test].get_test_outcome(),operations.calculate_reward(test_run_dict[test].get_test_outcome()))
-
-   state_index = [0 for s in test_dict.keys()]
-   for i, t in enumerate(test_dict.keys()):
-       state_index[i] = t
-
-   print(state_index)
-
-   states_comb = operations.list_of_combs(state_index)
-   print(states_comb)
-
-   transitions = []
-   for s1 in states_comb:
-       for s2 in states_comb:
-           if len(s1)+ agent_count == len(s2):
-               next_action= set(s2) - set(s1)
-               if len(next_action)==agent_count:
-                   transitions.append((s1,list(next_action),test_dict[list(next_action)[0]].get_failure_probability(),s2))  #TBD - change to support multi agents
-                                                                                                                            # test_dict[list(next_action)[0]].get_failure_probability()
-
-   print(transitions)
+    M = MMDP.MMDP(state_arr, action_arr, trans_arr, reward_arr)
+    print(M.policy(M.v0))
+    print(M.vi(M.v0,5))
 '''
-
-
-
 
 if __name__ == "__main__":
     main()
