@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import models
 import operations
-import MMDP
+#import MMDP
 def main():
     component_probabilities_df = pd.read_csv('data/ComponentProbabilities.csv')
     #test_components_df = pd.read_csv('data/TestComponents.csv')
@@ -144,8 +144,9 @@ def main():
     max_V = 0.0
     tran_V = 0.0
     best_act = ''
+    number_of_tests = 10
     policy_actions = []
-    for i in range(0,5):
+    for i in range(0,int(number_of_tests/agent_count)):
         for a in actions.values():
            if (current_state,a) in transitions_act:
                s1 =  transitions_act[(current_state,a)]
