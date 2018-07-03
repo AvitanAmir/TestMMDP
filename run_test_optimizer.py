@@ -82,6 +82,7 @@ def main():
                 #print(state.get_state_info(),state.get_state_reward())
 
     transitions = []
+    transitions_act = {}
     actions = {}
     action_Pfailure = {}
     expected_reward={}
@@ -105,17 +106,65 @@ def main():
                         action_Pfailure[action_name] = 1 - (float(test_dict[action_tup[0]].get_success_probability()) * float(test_dict[action_tup[1]].get_success_probability()))
                         action_counter += 1
                     tr = (s.get_state_name(),action_name,t.get_state_name())
+                    tr_act = (s.get_state_name(), action_name)
                     expected_reward[tr] = action_Pfailure[action_name]*operations.calculate_reward(0) + (1- action_Pfailure[action_name])*operations.calculate_reward(1)
                     transitions.append(tr)
+                    transitions_act[tr_act] =t.get_state_name()
 
-    #print(actions)
-    #print(action_Pfailure)
-    #print(transitions)
-    #print(expected_reward)
-    #print(states)
+    print(actions)
+    print(action_Pfailure)
+    print(transitions_act)
+    print(expected_reward)
+    print(states)
 
+# calculate value iteration
+    max_exp_utility = 0
+    exp_utility = 0
+    max_iter_num =100
+    U1 = dict([(s.get_state_name(), 0) for s in states])
+    counter =0
+    while counter<max_iter_num:
+        U = U1.copy()
+        for s in states:
+            for a in actions.values():
+                if (s.get_state_name(), a) in transitions_act:
+                    s1 = transitions_act[(s.get_state_name(), a)]
+                    exp_utility = action_Pfailure[a] * U[s1]
+                if max_exp_utility<exp_utility:
+                    max_exp_utility = exp_utility
+            U1[s.get_state_name()] = s.get_state_reward() + max_exp_utility
+            #print(U)
+            max_exp_utility = 0
+            exp_utility = 0
+        counter +=1
+        #print(counter)
+    print(U)
+# calculate optimal policy
+    current_state = 'S0'
+    max_V = 0.0
+    tran_V = 0.0
+    best_act = ''
+    policy_actions = []
+    for i in range(0,5):
+        for a in actions.values():
+           if (current_state,a) in transitions_act:
+               s1 =  transitions_act[(current_state,a)]
+               tran_V = U[s1]
+               if tran_V>max_V and a not in policy_actions:
+                   max_V = tran_V
+                   best_act = a
+        if best_act!='':
+            policy_actions.append(best_act)
+            current_state = transitions_act[(current_state,best_act)]
+        max_V = 0.0
+        tran_V = 0.0
+        best_act = ''
+
+    print(policy_actions)
+
+
+'''
     discount_factor = 1.0
-
     V = np.zeros(len(states))
     def one_step_lookahead(state, V):
             A = np.zeros(len(actions))
@@ -126,11 +175,8 @@ def main():
 
     for s in states:
         # Do a one-step lookahead to find the best action
-        #print(s.get_state_name())
         A = one_step_lookahead(s, V)
         best_action_value = np.max(A)
-        # Calculate delta across all states seen so far
-        delta = max(delta, np.abs(best_action_value - V[s.get_state_index()]))
         # Update the value function.
         V[s.get_state_index()] = best_action_value
 
@@ -158,47 +204,8 @@ def main():
 
     print(policy_route)
 
-
-
-
-
-
-
-
-
-
-
-
-'''   action_arr = []
-    state_arr = []
-    for a in actions:
-        action_arr.append(int(actions[a].replace('A','')))
-
-    trans_arr = [[0.0 for x in range(len(actions))] for y in range(len(states))]
-    reward_arr = [[0.0 for x in range(len(actions))] for y in range(len(states))]
-    for tr in transitions:
-        state_index = int(str(tr[0]).replace('S',''))
-        action_index = int(str(tr[1]).replace('A',''))
-        transP = action_Pfailure[tr[1]]
-        trans_arr[state_index][action_index] = transP
-        reward_arr[state_index][action_index] =expected_reward[tr]
-
-    for s in states:
-        state_arr.append(int(str(s.get_state_name()).replace('S','')))
-
-    print(trans_arr)
-    print(actions)
-    print(action_Pfailure)
-    print(transitions)
-    print(expected_reward)
-    print(action_arr)
-    print(reward_arr)
-    print(states)
-
-    M = MMDP.MMDP(state_arr, action_arr, trans_arr, reward_arr)
-    print(M.policy(M.v0))
-    print(M.vi(M.v0,5))
 '''
+
 
 if __name__ == "__main__":
     main()
